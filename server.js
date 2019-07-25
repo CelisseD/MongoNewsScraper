@@ -15,6 +15,9 @@ var db = require("./models");
 
 var PORT = process.env.PORT || 3000;
 
+// Initialize Express
+const app = express();
+
 // Configure middleware
 
 // Use morgan logger for logging requests
@@ -35,7 +38,11 @@ app.use(routes);
 
 // If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true
+  });
+
+mongoose.set("useCreateIndex", true);
 
 // Start the Server
 app.listen(PORT, function() {
