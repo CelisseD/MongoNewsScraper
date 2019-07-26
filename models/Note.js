@@ -5,16 +5,21 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 // Create Comment Schema
-var NoteSchema = new Schema({
+var CommentSchema = new Schema({
 
-  // Author's Name
-  title: String,
-  body: String
-  });
+  name: {
+    type: String
+  },
 
+  body: {
+    type: String,
+    required: true
+  },
+
+});
 
 // Create the Comment model with Mongoose
-var Note = mongoose.model('Note', NoteSchema);
+var Comment = mongoose.model("Comment", CommentSchema);
 
 // Export the Model
-module.exports = Note;
+module.exports = Comment;

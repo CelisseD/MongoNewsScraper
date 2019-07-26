@@ -1,6 +1,3 @@
-// Include the momentJS library
-var moment = require("moment");
-
 // Require Mongoose
 var mongoose = require('mongoose');
 
@@ -13,34 +10,25 @@ var ArticleSchema = new Schema({
   // Title of Article
   title: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
 
   // Link to Article
   link: {
     type: String,
-    required: true,
-    unique: true
-  },
-  
-  // Summary of Article
-  summary: {
-    type: String,
-    required: true,
-    unique: true
+    required: true
   },
 
   // Create a relation with the Comment model
-  note: {
+  note: [{
     type: Schema.Types.ObjectId,
     ref: 'Note'
-  }
+  }]
 
 });
 
 // Create the Article model with Mongoose
-var Article = mongoose.model('Article', ArticleSchema);
+var Article = mongoose.model("Article", ArticleSchema);
 
 // Export the Model
 module.exports = Article;

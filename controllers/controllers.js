@@ -37,9 +37,8 @@ router.get("/scrape", function (req, res) {
 
             // Then we grab the inner text of the this element and store it
             // to the head variable. This is the article headline
-            result.title = $(element).find("h3").text();
-            result.link = $(element).children("a").attr("href");
-            result.summary = $(element).find("p").text();
+            result.title = $(element).children().text();
+            result.link = $(element).find("a").attr("href");
 
             // Create a new Article using the `result` object built from scraping
             db.Article.create(result)
@@ -55,7 +54,9 @@ router.get("/scrape", function (req, res) {
 
         // Send a message to the client
         res.send("Scrape Complete");
+        // console.log(result);
     });
+    
 });
 
 // GRAB ARTICLES FROM DB

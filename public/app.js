@@ -1,73 +1,135 @@
-// Grab the articles as a json
-$.getJSON("/articles", function(data) {
-    // For each one
-    for (var i = 0; i < data.length; i++) {
-      // Display the apropos information on the page
-      $("#articles").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br />" + data[i].link + "</p>");
-    }
-  });
+function saveEvent(){
+    $(".table-striped").on("click",".save", function(){ 
+    console.log("Test");
+      var currentRow=$(this).closest("tr");
+      var col1 = currentRow.find("td:eq(0)").text();
+      var col2 = currentRow.find("td:eq(1)").text();
   
+      $.ajax({
+        method:"POST",
+        url:"/api/save",
+        data: { title:col1, summary:col2 }
+      }).done(function(data){
   
-  // Whenever someone clicks a p tag
-  $(document).on("click", "p", function() {
-    // Empty the notes from the note section
-    $("#notes").empty();
-    // Save the id from the p tag
-    var thisId = $(this).attr("data-id");
+      }); 
+    });
+  }
   
-    // Now make an ajax call for the Article
-    $.ajax({
-      method: "GET",
-      url: "/articles/" + thisId
-    })
-      // With that done, add the note information to the page
-      .then(function(data) {
+  function deleteArticle(){
+    $(".table-striped").on("click", ".delete", function() {
+        // console.log("test");
+        console.log($(this).parent("td"));
+        var rowId = $(this).parent("td").parent("tr").attr('id');
+        console.log(rowId);
+        $(this).closest("tr").remove();
+        $.ajax({
+          method:"DELETE",
+          url:"/api/article/" + rowId
+        }).done(function(data){
+        });
+    });
+  }
+  
+  function deleteNotes(){
+    $(".deleteComment").on("click", function() {
+        console.log($(this).parent("td"));
+        var rowId = $(this).parent("td").parent("tr").attr('id');
+        console.log(rowId);
+        $(this).closest("tr").remove();
+        $.ajax({
+          method:"DELETE",
+          url:"/comment/" + rowId
+        }).done(function(data){
+        });
+    });
+  }
+  
+  $(document).ready(function(){
+    $("#scrape").on("click",function(){
+      $("tbody").empty();
+      $.ajax({
+        method:"GET",
+        url:"/scrape"
+      }).done(function(data){
         console.log(data);
-        // The title of the article
-        $("#notes").append("<h2>" + data.title + "</h2>");
-        // An input to enter a new title
-        $("#notes").append("<input id='titleinput' name='title' >");
-        // A textarea to add a new note body
-        $("#notes").append("<textarea id='bodyinput' name='body'></textarea>");
-        // A button to submit a new note, with the id of the article saved to it
-        $("#notes").append("<button data-id='" + data._id + "' id='savenote'>Save Note</button>");
-  
-        // If there's a note in the article
-        if (data.note) {
-          // Place the title of the note in the title input
-          $("#titleinput").val(data.note.title);
-          // Place the body of the note in the body textarea
-          $("#bodyinput").val(data.note.body);
+        $("#headings").html("<h1>Scraped Articles</h1>");
+        for(var i=0; i < data.length; i++){
+          $("#nyt-articles").append(
+          "<tbody><tr><td>" +data[i].title+"</td>"+
+                  "<td>" + data[i].summary+"</td>"+
+                  "<td><button class='btn btn-success save'> Save Article </button></td></tr></tbody>"
+          );
         }
+        saveEvent();  
       });
-  });
+    });
   
-  // When you click the savenote button
-  $(document).on("click", "#savenote", function() {
-    // Grab the id associated with the article from the submit button
-    var thisId = $(this).attr("data-id");
+    $("#home").on("click", function(event){
+      event.preventDefault();
+      window.location ="/";
+    });
   
-    // Run a POST request to change the note, using what's entered in the inputs
-    $.ajax({
-      method: "POST",
-      url: "/articles/" + thisId,
-      data: {
-        // Value taken from title input
-        title: $("#titleinput").val(),
-        // Value taken from note textarea
-        body: $("#bodyinput").val()
-      }
-    })
-      // With that done
-      .then(function(data) {
-        // Log the response
+    $("#savedArticles").on("click", function(event){
+      event.preventDefault();
+      $.ajax({
+        method:"GET",
+        url:"/articles"
+      }).done(function(data){
         console.log(data);
-        // Empty the notes section
-        $("#notes").empty();
+        $("#page-title1").html("S");
+        $("#page-title2").html("AVED");
+        $("#page-title3").html("A");
+        $("#page-title4").html("RTICLES");
+        $("#headings").html("<h1>Saved Articles</h1>");
+        $("tbody").empty();
+  
+        for(var i=0; i < data.length; i++){
+          $("#nyt-articles").append(
+          "<tbody><tr id ="+ data[i]._id+" ><td>" +data[i].title+"</td>"+
+                  "<td>" + data[i].summary+"</td>"+
+                  "<td><button class='btn btn-success articleComments' data-toggle='modal' data-target='#comment' data-id="+data[i]._id+" >Article Notes</button></td><td><button class='btn btn-danger delete'>Delete Article</button></td></tr></tbody>"
+          );
+        }
+        deleteArticle();
       });
   
-    // Also, remove the values entered in the input and textarea for note entry
-    $("#titleinput").val("");
-    $("#bodyinput").val("");
-  });
+    });
   
+    $('#comment').on('show.bs.modal', function(e) {
+      var articleId = $(e.relatedTarget).data('id');
+      $("#comment").attr("data-article-id",articleId);
+  
+      $.ajax({
+        method:"GET",
+        url:"/articles/"+articleId,
+      }).done(function(data){
+        console.log(data);
+        for(var i=0; i<data.comment.length; i++){
+          console.log(data.comment.length);
+          $(".comment_list").append(
+            "<tbody><tr id="+data.comment[i]._id+"><td>&bull;  "+data.comment[i].body+"  <button class='btn btn-danger deleteComment'>X</button>"
+          );
+        }
+        deleteNotes();
+      })
+  
+      $(".saveComments").on("click", function(event){
+        event.preventDefault
+        var modalId = $("#comment").attr("data-article-id");
+        console.log(modalId);
+        console.log($("#myTextArea").val());
+      // var thisId = $(this).attr("data-article-id");
+        $.ajax({
+          method:"POST",
+          url:"/api/new_comment/"+ modalId,
+          data:{
+            body:$("#myTextArea").val()
+          }
+        }).done(function(data){
+          // $(".comment_list").html(data);
+          alert("comment saved");
+        });
+  
+      });
+    });
+  }); 
